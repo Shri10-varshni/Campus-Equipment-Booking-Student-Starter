@@ -29,13 +29,5 @@ pipeline {
                 sh 'mvn package -DskipTests'
             }
         }
-
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                    docker build -t campus-equipment-booking:set-f .
-                '''
-            }
-        }
     }
 }
