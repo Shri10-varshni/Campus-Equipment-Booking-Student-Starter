@@ -8,4 +8,31 @@ class BookingServiceTest {
  @Test void unknownEquipmentRejected(){assertThrows(NoSuchElementException.class,()->service.create("STU1001","UNKNOWN",1));}
  @Test void ordinaryOverbookingRejected(){assertThrows(IllegalStateException.class,()->service.create("STU1001","PROJECTOR01",6));assertEquals(4,service.getEquipment("PROJECTOR01").getAvailableQuantity());}
  @Test void cancellationRestoresInventoryOnce(){Booking b=service.create("STU1001","TABLET01",3);service.cancel(b.getId());assertEquals(8,service.getEquipment("TABLET01").getAvailableQuantity());assertThrows(IllegalStateException.class,()->service.cancel(b.getId()));}
+
+@Test
+void bookingExactlyAvailableInventorySucceeds() {
+    Booking booking = service.create("STU1001", "LAPTOP01", 10);
+
+    assertEquals(10, booking.getQuantity());
+    assertEquals("CONFIRMED", booking.getStatus());
+    assertEquals(0, service.getEquipment("LAPTOP01").getAvailableQuantity());
+}
+
+@Test
+void bookingOneMoreThanAvailableIsRejectedWithoutSideEffects() {
+    int availableBefore = service.getEquipment("LAPTOP01").getAvailableQuantity();
+
+    assertThrows(
+        IllegalStateException.class,
+        () -> service.create("STU1001", "LAPTOP01", availableBefore + 1)
+    );
+
+    assertEquals(
+        availableBefore,
+        service.getEquipment("LAPTOP01").getAvailableQuantity()
+    );
+
+    assertTrue(service.listBookings().isEmpty());
+}
+
 }
